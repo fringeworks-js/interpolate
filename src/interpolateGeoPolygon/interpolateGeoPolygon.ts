@@ -24,5 +24,6 @@ export default function interpolateGeoPolygon<P>(
     mercatorSpace,
     options,
   );
-  return (t) => interpolate(t)[0];
+  // 1つのポリゴンだけを渡しているので、結果も1つ
+  return (t) => interpolate(t)[0]!;
 }

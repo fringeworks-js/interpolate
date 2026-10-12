@@ -14,7 +14,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 0 },
         { lat: 60, lng: 0 },
       ]);
-      expectLatLng(i(0.5)[1], { lat: 35.26438968, lng: 0 });
+      expectLatLng(i(0.5)[1]!, { lat: 35.26438968, lng: 0 });
     });
 
     it('赤道に沿った線は経度で線形に補間する', () => {
@@ -22,7 +22,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 10 },
         { lat: 0, lng: 50 },
       ]);
-      expectLatLng(i(0.25)[1], { lat: 0, lng: 20 });
+      expectLatLng(i(0.25)[1]!, { lat: 0, lng: 20 });
     });
 
     it('[lng, lat] の点を扱える', () => {
@@ -30,7 +30,7 @@ describe('interpolateGeoPolyline', () => {
         [10, 0],
         [50, 0, 100],
       ]);
-      const [lng, lat, ...rest] = i(0.25)[1];
+      const [lng, lat, ...rest] = i(0.25)[1]!;
       expect(lng).toBeCloseTo(20, 6);
       expect(lat).toBeCloseTo(0, 6);
       expect(rest).toEqual([]);
@@ -41,7 +41,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 0, id: 'a' },
         { lat: 0, lng: 10, id: 'b' },
       ]);
-      expect(i(0.5)[1].id).toBe('a');
+      expect(i(0.5)[1]!.id).toBe('a');
     });
 
     it('極に近い点があっても計算できる', () => {
@@ -49,7 +49,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 0 },
         { lat: 90, lng: 0 },
       ]);
-      const { lat } = i(0.5)[1];
+      const { lat } = i(0.5)[1]!;
       expect(Number.isFinite(lat)).toBe(true);
       expect(lat).toBeGreaterThan(0);
       expect(lat).toBeLessThan(90);
@@ -62,8 +62,8 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 179 },
         { lat: 0, lng: -179 },
       ]);
-      expectLatLng(i(0.5)[1], { lat: 0, lng: 180 });
-      expectLatLng(i(0.75)[1], { lat: 0, lng: 180.5 });
+      expectLatLng(i(0.5)[1]!, { lat: 0, lng: 180 });
+      expectLatLng(i(0.75)[1]!, { lat: 0, lng: 180.5 });
     });
 
     it('西向きにまたぐ', () => {
@@ -71,7 +71,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: -179 },
         { lat: 0, lng: 179 },
       ]);
-      expectLatLng(i(0.75)[1], { lat: 0, lng: -180.5 });
+      expectLatLng(i(0.75)[1]!, { lat: 0, lng: -180.5 });
     });
 
     it('連続した経度（Leaflet の形式）の入力も扱える', () => {
@@ -79,7 +79,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: 179 },
         { lat: 0, lng: 181 },
       ]);
-      expectLatLng(i(0.5)[1], { lat: 0, lng: 180 });
+      expectLatLng(i(0.5)[1]!, { lat: 0, lng: 180 });
     });
 
     it('長さは近い方向で測る', () => {
@@ -90,7 +90,7 @@ describe('interpolateGeoPolyline', () => {
       ]);
       // 2° + 2° の折れ線の半分
       expect(i(0.5)).toHaveLength(2);
-      expectLatLng(i(0.75)[2], { lat: 0, lng: -178 });
+      expectLatLng(i(0.75)[2]!, { lat: 0, lng: -178 });
     });
 
     it('複数回またいでも直前の頂点から連続した経度にする', () => {
@@ -99,7 +99,7 @@ describe('interpolateGeoPolyline', () => {
         { lat: 0, lng: -170 },
         { lat: 0, lng: 170 },
       ]);
-      expectLatLng(i(0.75)[2], { lat: 0, lng: -180 });
+      expectLatLng(i(0.75)[2]!, { lat: 0, lng: -180 });
     });
   });
 
@@ -112,7 +112,7 @@ describe('interpolateGeoPolyline', () => {
         ],
         { geodesic: true },
       );
-      expectLatLng(i(0.5)[1], { lat: 0, lng: 45 });
+      expectLatLng(i(0.5)[1]!, { lat: 0, lng: 45 });
     });
 
     it('経線に沿った大円は緯度で線形に補間する', () => {
@@ -123,7 +123,7 @@ describe('interpolateGeoPolyline', () => {
         ],
         { geodesic: true },
       );
-      expectLatLng(i(0.5)[1], { lat: 30, lng: 0 });
+      expectLatLng(i(0.5)[1]!, { lat: 30, lng: 0 });
     });
 
     it('経度 ±180° をまたぐ大円', () => {
@@ -134,7 +134,7 @@ describe('interpolateGeoPolyline', () => {
         ],
         { geodesic: true },
       );
-      expectLatLng(i(0.5)[1], { lat: 60.3783481248, lng: -180 });
+      expectLatLng(i(0.5)[1]!, { lat: 60.3783481248, lng: -180 });
     });
 
     it('extrapolateEnd のとき大円に沿って延ばす', () => {
@@ -145,7 +145,7 @@ describe('interpolateGeoPolyline', () => {
         ],
         { geodesic: true, extrapolateEnd: true },
       );
-      expectLatLng(i(1.5)[2], { lat: 0, lng: 135 });
+      expectLatLng(i(1.5)[2]!, { lat: 0, lng: 135 });
     });
 
     it('対蹠点どうしの区間は緯度経度の直線で補間する', () => {
@@ -157,7 +157,7 @@ describe('interpolateGeoPolyline', () => {
         { geodesic: true },
       );
       // 経度の差がちょうど 180° のため、向きは定まらない
-      const { lat, lng } = i(0.5)[1];
+      const { lat, lng } = i(0.5)[1]!;
       expect(lat).toBeCloseTo(0, 6);
       expect(Math.abs(lng)).toBeCloseTo(90, 6);
     });
@@ -172,8 +172,8 @@ describe('interpolateGeoPolyline', () => {
         ],
         { extrapolateStart: true, extrapolateEnd: true },
       );
-      expectLatLng(i(-0.5)[1], { lat: 0, lng: -5 });
-      expectLatLng(i(1.5)[2], { lat: 0, lng: 15 });
+      expectLatLng(i(-0.5)[1]!, { lat: 0, lng: -5 });
+      expectLatLng(i(1.5)[2]!, { lat: 0, lng: 15 });
     });
   });
 

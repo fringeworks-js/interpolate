@@ -25,6 +25,6 @@ export function _countFractionDigits(value: number): number {
     return 0;
   }
   const [mantissa, exponent = '0'] = String(value).split('e');
-  const fraction = mantissa.split('.')[1]?.length ?? 0;
+  const fraction = mantissa!.split('.')[1]?.length ?? 0;
   return Math.max(0, fraction - Number(exponent));
 }

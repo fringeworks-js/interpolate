@@ -117,10 +117,12 @@ export default function interpolateGeoCamera<P>(
       zoom: Math.log2(viewportWidth / width),
     };
     if (hasHeading) {
-      camera.heading = a.heading + wrapLongitude(b.heading - a.heading) * t;
+      // hasHeading で両方とも数値であることを確認している
+      camera.heading = a.heading! + wrapLongitude(b.heading! - a.heading!) * t;
     }
     if (hasTilt) {
-      camera.tilt = a.tilt + (b.tilt - a.tilt) * t;
+      // hasTilt で両方とも数値であることを確認している
+      camera.tilt = a.tilt! + (b.tilt! - a.tilt!) * t;
     }
     return camera;
   }) as GeoCameraInterpolator<P>;

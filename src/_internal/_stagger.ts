@@ -9,7 +9,7 @@ import { _nonNegativeOr } from './_numbers';
  */
 export default function _createStaggerRanges(
   count: number,
-  value: number,
+  value: number | undefined,
   fallback: number,
 ): [number, number][] {
   const stagger = _nonNegativeOr(value, fallback);

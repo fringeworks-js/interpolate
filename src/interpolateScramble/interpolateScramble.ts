@@ -51,13 +51,13 @@ export default function interpolateScramble(
     const step = Math.floor(t * changeCount);
     let result = '';
     for (let i = 0; i < count; i++) {
-      const local = _toLocal(t, ranges[i]);
+      const local = _toLocal(t, ranges[i]!);
       if (local <= 0) {
         result += from[i] ?? '';
       } else if (local >= 1) {
         result += to[i] ?? '';
       } else {
-        const target = to[i] ?? from[i];
+        const target = to[i] ?? from[i] ?? '';
         result += /^\s+$/.test(target)
           ? target
           : pool[hash(seed, i, step) % pool.length];

@@ -27,7 +27,7 @@ export default function staggerInterpolators<
 
   return ((t: number) =>
     interpolators.map((interpolator, i) => {
-      const local = _toLocal(t, resolved[i]);
+      const local = _toLocal(t, resolved[i]!);
       return interpolator(ease ? ease(local) : local);
     })) as Interpolator<StaggeredValues<I>>;
 }

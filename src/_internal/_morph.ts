@@ -16,11 +16,11 @@ type Sample = {
 const getFractions = (coordinates: Coordinates[]): number[] => {
   const cumulative = [0];
   for (let i = 1; i < coordinates.length; i++) {
-    const [x0, y0] = coordinates[i - 1],
-      [x1, y1] = coordinates[i];
-    cumulative.push(cumulative[i - 1] + Math.hypot(x1 - x0, y1 - y0));
+    const [x0, y0] = coordinates[i - 1]!,
+      [x1, y1] = coordinates[i]!;
+    cumulative.push(cumulative[i - 1]! + Math.hypot(x1 - x0, y1 - y0));
   }
-  const total = cumulative[cumulative.length - 1];
+  const total = cumulative[cumulative.length - 1]!;
   return cumulative.map((length) => (total > 0 ? length / total : 0));
 };
 
@@ -33,19 +33,19 @@ const sample = (
   fraction: number,
 ): Sample => {
   let i = 0;
-  while (i < fractions.length - 2 && fractions[i + 1] <= fraction) {
+  while (i < fractions.length - 2 && fractions[i + 1]! <= fraction) {
     i++;
   }
   if (coordinates.length === 1) {
-    return { coordinates: coordinates[0], index: 0 };
+    return { coordinates: coordinates[0]!, index: 0 };
   }
-  const span = fractions[i + 1] - fractions[i];
-  const ratio = span > 0 ? (fraction - fractions[i]) / span : 0;
+  const span = fractions[i + 1]! - fractions[i]!;
+  const ratio = span > 0 ? (fraction - fractions[i]!) / span : 0;
   if (ratio >= 1) {
-    return { coordinates: coordinates[i + 1], index: i + 1 };
+    return { coordinates: coordinates[i + 1]!, index: i + 1 };
   }
-  const [x0, y0] = coordinates[i],
-    [x1, y1] = coordinates[i + 1];
+  const [x0, y0] = coordinates[i]!,
+    [x1, y1] = coordinates[i + 1]!;
   return {
     coordinates: [x0 + (x1 - x0) * ratio, y0 + (y1 - y0) * ratio],
     index: i,
@@ -57,7 +57,7 @@ const sample = (
  */
 const mergeFractions = (a: number[], b: number[]): number[] => {
   const merged = [...a, ...b].sort((x, y) => x - y);
-  return merged.filter((value, i) => i === 0 || value - merged[i - 1] > 1e-12);
+  return merged.filter((value, i) => i === 0 || value - merged[i - 1]! > 1e-12);
 };
 
 /**
@@ -89,8 +89,9 @@ export default function _createPolylineMorphInterpolator<P>(
     [sourceA.map((point) => getCoordinates(point))],
     [sourceB.map((point) => getCoordinates(point))],
   ]);
-  let coordinatesA = space.coordinates[0][0],
-    coordinatesB = space.coordinates[1][0];
+  // createSpace に渡した2つの折れ線に対応する
+  let coordinatesA = space.coordinates[0]![0]!,
+    coordinatesB = space.coordinates[1]![0]!;
 
   // 点のない側は、点のある側の折れ線上の基準点1つだけの折れ線とみなす
   const emptyA = !coordinatesA.length,
@@ -99,9 +100,9 @@ export default function _createPolylineMorphInterpolator<P>(
     const existing = emptyA ? coordinatesB : coordinatesA;
     const point =
       origin === 'start'
-        ? existing[0]
+        ? existing[0]!
         : origin === 'end'
-          ? existing[existing.length - 1]
+          ? existing[existing.length - 1]!
           : origin === 'center'
             ? sample(existing, getFractions(existing), 0.5).coordinates
             : space.project(getCoordinates(origin as P));
@@ -142,9 +143,10 @@ export default function _createPolylineMorphInterpolator<P>(
       );
       const from = sourceA[sampleA.index],
         to = sourceB[sampleB.index];
+      // 点のない側は、点のある側の点を使う（両方とも点がない場合は先に返している）
       return createPoint(coordinates, {
-        from: emptyA ? to : from,
-        to: emptyB ? from : to,
+        from: (emptyA ? to : from)!,
+        to: (emptyB ? from : to)!,
         ratio: t,
       });
     });

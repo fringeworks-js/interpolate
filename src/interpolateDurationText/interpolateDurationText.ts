@@ -57,7 +57,7 @@ const format = (
   fields.unshift(seconds);
 
   const text = fields
-    .map((field, i) => String(field).padStart(widths[i], '0'))
+    .map((field, i) => String(field).padStart(widths[i] ?? 0, '0'))
     .join(':');
   return fractionDigits
     ? `${text}.${String(fraction).padStart(fractionDigits, '0')}`
@@ -88,7 +88,7 @@ export default function interpolateDurationText(
   // 最初の部分のゼロ埋めは、区切りの数が同じなら a と b の少ない方の桁数にする（例: 5:00 → 10:00 の途中は 7:30）
   const widths = to.widths.slice();
   if (from.widths.length === widths.length) {
-    widths[0] = Math.min(from.widths[0], widths[0]);
+    widths[0] = Math.min(from.widths[0]!, widths[0]!);
   }
   const output = { widths, fractionDigits: to.fractionDigits };
 

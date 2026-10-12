@@ -37,18 +37,18 @@ export type PolylineMetric = {
  */
 export const planarMetric = (coordinates: Coordinates[]): PolylineMetric => ({
   measure: (i) => {
-    const [x0, y0] = coordinates[i],
-      [x1, y1] = coordinates[i + 1];
+    const [x0, y0] = coordinates[i]!,
+      [x1, y1] = coordinates[i + 1]!;
     return Math.hypot(x1 - x0, y1 - y0);
   },
   locate: (i, ratio) => {
-    const [x0, y0] = coordinates[i],
-      [x1, y1] = coordinates[i + 1];
+    const [x0, y0] = coordinates[i]!,
+      [x1, y1] = coordinates[i + 1]!;
     return [x0 + (x1 - x0) * ratio, y0 + (y1 - y0) * ratio];
   },
   direction: (i) => {
-    const [x0, y0] = coordinates[i],
-      [x1, y1] = coordinates[i + 1];
+    const [x0, y0] = coordinates[i]!,
+      [x1, y1] = coordinates[i + 1]!;
     return toDegrees(Math.atan2(y1 - y0, x1 - x0));
   },
 });
@@ -65,32 +65,32 @@ export const mercatorMetric = (coordinates: Coordinates[]): PolylineMetric => {
     unwrapped.push(
       i === 0
         ? lng
-        : unwrapped[i - 1] + wrapLongitude(lng - coordinates[i - 1][0]),
+        : unwrapped[i - 1]! + wrapLongitude(lng - coordinates[i - 1]![0]),
     );
   });
   const projected = coordinates.map(([, lat], i): Coordinates => [
-    toRadians(unwrapped[i]),
+    toRadians(unwrapped[i]!),
     projectLatitude(lat),
   ]);
   return {
     measure: (i) => {
-      const [x0, y0] = projected[i],
-        [x1, y1] = projected[i + 1];
+      const [x0, y0] = projected[i]!,
+        [x1, y1] = projected[i + 1]!;
       return Math.hypot(x1 - x0, y1 - y0);
     },
     locate: (i, ratio) => {
-      const [x0, y0] = projected[i],
-        [x1, y1] = projected[i + 1];
+      const [x0, y0] = projected[i]!,
+        [x1, y1] = projected[i + 1]!;
       const x = x0 + (x1 - x0) * ratio,
         y = y0 + (y1 - y0) * ratio;
       return [
-        coordinates[i][0] + toDegrees(x) - unwrapped[i],
+        coordinates[i]![0] + toDegrees(x) - unwrapped[i]!,
         unprojectLatitude(y),
       ];
     },
     direction: (i) => {
-      const [x0, y0] = projected[i],
-        [x1, y1] = projected[i + 1];
+      const [x0, y0] = projected[i]!,
+        [x1, y1] = projected[i + 1]!;
       // メルカトル座標は x が東、y が北
       return toDegrees(Math.atan2(x1 - x0, y1 - y0));
     },
@@ -122,26 +122,26 @@ export const geodesicMetric = (coordinates: Coordinates[]): PolylineMetric => {
   const vectors = coordinates.map(toVector);
   const angles = vectors
     .slice(0, -1)
-    .map((vector, i) => angleBetween(vector, vectors[i + 1]));
+    .map((vector, i) => angleBetween(vector, vectors[i + 1]!));
 
   // 対蹠点どうしの区間は大円が定まらないため、緯度経度の直線で代用する
-  const isDegenerate = (i: number) => Math.sin(angles[i]) < 1e-12;
+  const isDegenerate = (i: number) => Math.sin(angles[i]!) < 1e-12;
 
   const locate = (i: number, ratio: number): Coordinates => {
-    const [lng0, lat0] = coordinates[i],
-      [lng1, lat1] = coordinates[i + 1];
+    const [lng0, lat0] = coordinates[i]!,
+      [lng1, lat1] = coordinates[i + 1]!;
     if (isDegenerate(i)) {
       return [
         lng0 + wrapLongitude(lng1 - lng0) * ratio,
         lat0 + (lat1 - lat0) * ratio,
       ];
     }
-    const angle = angles[i],
+    const angle = angles[i]!,
       sin = Math.sin(angle);
     const a = Math.sin((1 - ratio) * angle) / sin,
       b = Math.sin(ratio * angle) / sin;
-    const [x0, y0, z0] = vectors[i],
-      [x1, y1, z1] = vectors[i + 1];
+    const [x0, y0, z0] = vectors[i]!,
+      [x1, y1, z1] = vectors[i + 1]!;
     const x = a * x0 + b * x1,
       y = a * y0 + b * y1,
       z = a * z0 + b * z1;
@@ -151,21 +151,21 @@ export const geodesicMetric = (coordinates: Coordinates[]): PolylineMetric => {
   };
 
   return {
-    measure: (i) => angles[i],
+    measure: (i) => angles[i]!,
     locate,
     direction: (i, ratio) => {
-      const [lng0, lat0] = coordinates[i],
-        [lng1, lat1] = coordinates[i + 1];
+      const [lng0, lat0] = coordinates[i]!,
+        [lng1, lat1] = coordinates[i + 1]!;
       if (isDegenerate(i)) {
         return toDegrees(Math.atan2(wrapLongitude(lng1 - lng0), lat1 - lat0));
       }
       // 大円上の位置での接線を、東・北の成分に分けて方位を求める
-      const angle = angles[i],
+      const angle = angles[i]!,
         sin = Math.sin(angle);
       const a = Math.cos((1 - ratio) * angle) / sin,
         b = Math.cos(ratio * angle) / sin;
-      const [x0, y0, z0] = vectors[i],
-        [x1, y1, z1] = vectors[i + 1];
+      const [x0, y0, z0] = vectors[i]!,
+        [x1, y1, z1] = vectors[i + 1]!;
       const tx = b * x1 - a * x0,
         ty = b * y1 - a * y0,
         tz = b * z1 - a * z0;
@@ -242,12 +242,12 @@ export function _measurePolyline<P>(
     cumulative = [0];
   for (let i = 0; i < count - 1; i++) {
     lengths.push(metric.measure(i));
-    cumulative.push(cumulative[i] + lengths[i]);
+    cumulative.push(cumulative[i]! + lengths[i]!);
   }
-  const total = cumulative[cumulative.length - 1];
+  const total = cumulative[cumulative.length - 1]!;
   const first = lengths.findIndex((length) => length > 0);
   let last = lengths.length - 1;
-  while (last > 0 && lengths[last] === 0) {
+  while (last > 0 && lengths[last]! === 0) {
     last--;
   }
 
@@ -260,24 +260,24 @@ export function _measurePolyline<P>(
     first,
     last,
     find: (distance) => {
-      // cumulative[i] <= distance となる最大の i を探す。
+      // cumulative[i]! <= distance となる最大の i を探す。
       // distance < total なので、区間 i は必ず長さを持つ
       let low = 0,
         high = count - 2;
       while (low < high) {
         const middle = (low + high + 1) >> 1;
-        if (cumulative[middle] <= distance) {
+        if (cumulative[middle]! <= distance) {
           low = middle;
         } else {
           high = middle - 1;
         }
       }
-      return [low, (distance - cumulative[low]) / lengths[low]];
+      return [low, (distance - cumulative[low]!) / lengths[low]!];
     },
     pointAt: (i, ratio) =>
       createPoint(metric.locate(i, ratio), {
-        from: source[i],
-        to: source[i + 1],
+        from: source[i]!,
+        to: source[i + 1]!,
         ratio,
       }),
   };
@@ -303,14 +303,14 @@ export default function _createPolylineInterpolator<P>(
   return (t) => {
     if (t <= 0 || total === 0) {
       if (t < 0 && extrapolateStart && !snapToVertex && total > 0) {
-        return [source[0], pointAt(first, (t * total) / lengths[first])];
+        return [source[0]!, pointAt(first, (t * total) / lengths[first]!)];
       }
       return total === 0 && t >= 1 ? source.slice() : source.slice(0, 1);
     } else if (t >= 1) {
       if (t > 1 && extrapolateEnd && !snapToVertex) {
         return [
           ...source,
-          pointAt(last, 1 + ((t - 1) * total) / lengths[last]),
+          pointAt(last, 1 + ((t - 1) * total) / lengths[last]!),
         ];
       }
       return source.slice();

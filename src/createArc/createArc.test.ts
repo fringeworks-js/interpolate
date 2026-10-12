@@ -9,18 +9,18 @@ describe('createArc', () => {
   it('既定では 64 本の線分の弧を作り、両端は渡した点をそのまま入れる', () => {
     const arc = createArc(from, to);
     expect(arc).toHaveLength(65);
-    expect(arc[0]).toBe(from);
-    expect(arc[64]).toBe(to);
+    expect(arc[0]!).toBe(from);
+    expect(arc[64]!).toBe(to);
   });
 
   it('弧の高さは2点間の距離の curvature 倍で、進行方向の左（画面の上）に膨らむ', () => {
-    const [x, y] = createArc(from, to)[32];
+    const [x, y] = createArc(from, to)[32]!;
     expect(x).toBeCloseTo(5, 10);
     expect(y).toBeCloseTo(-2, 10);
   });
 
   it('curvature が負の値なら右に膨らむ', () => {
-    const [, y] = createArc(from, to, { curvature: -0.5 })[32];
+    const [, y] = createArc(from, to, { curvature: -0.5 })[32]!;
     expect(y).toBeCloseTo(5, 10);
   });
 
@@ -42,7 +42,7 @@ describe('createArc', () => {
       { x: 10, y: 0, id: 'to' },
       { segmentCount: 2 },
     );
-    expect(arc[1]).toEqual({ x: 5, y: -2, id: 'from' });
+    expect(arc[1]!).toEqual({ x: 5, y: -2, id: 'from' });
   });
 
   it('createPoint に両端と曲線上の位置を渡す', () => {

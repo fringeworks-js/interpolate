@@ -61,8 +61,9 @@ export default function chainInterpolators<
   let sum = 0;
   interpolators.forEach((interpolator, i) => {
     const start = sum / total;
-    sum += weights[i];
-    if (weights[i] > 0) {
+    const weight = weights[i]!;
+    sum += weight;
+    if (weight > 0) {
       segments.push({
         interpolate: interpolator ?? createHold(i),
         hold: interpolator === null,
@@ -75,12 +76,13 @@ export default function chainInterpolators<
   return ((t: number) => {
     let index = 0;
     for (let i = segments.length - 1; i > 0; i--) {
-      if (segments[i].start <= t) {
+      if (segments[i]!.start <= t) {
         index = i;
         break;
       }
     }
-    const { interpolate, hold, start, end } = segments[index];
+    // 重みの合計は 0 より大きいので、長さのある区間が必ず1つ以上ある
+    const { interpolate, hold, start, end } = segments[index]!;
     const local = (t - start) / (end - start);
     return interpolate(hold || !ease ? local : ease(local));
   }) as Interpolator<ChainedValue<I>>;

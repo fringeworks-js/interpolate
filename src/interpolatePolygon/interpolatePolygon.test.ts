@@ -38,18 +38,18 @@ describe('interpolatePolygon', () => {
     it('t=1 のとき元の点を同じ参照のまま返す', () => {
       const result = i(1);
       expect(result).toEqual([square]);
-      expect(result[0]).not.toBe(square);
-      expect(result[0][0]).toBe(square[0]);
+      expect(result[0]!).not.toBe(square);
+      expect(result[0]![0]!).toBe(square[0]!);
     });
 
     it('閉じたリング（最初の点を末尾に繰り返す GeoJSON の形）でも重心は同じ', () => {
-      const j = interpolatePolygon([[...square, square[0]]]);
-      expect(j(0)[0][0]).toEqual([5, 5]);
+      const j = interpolatePolygon([[...square, square[0]!]]);
+      expect(j(0)[0]![0]!).toEqual([5, 5]);
     });
 
     it('回り方が逆でも重心は同じ', () => {
       const j = interpolatePolygon([[...square].reverse()]);
-      expect(j(0)[0][0]).toEqual([5, 5]);
+      expect(j(0)[0]![0]!).toEqual([5, 5]);
     });
 
     it('穴の面積を差し引いた重心にする', () => {
@@ -60,7 +60,7 @@ describe('interpolatePolygon', () => {
         [8, 8],
         [8, 2],
       ];
-      const [[[x, y]]] = interpolatePolygon([square, hole])(0);
+      const [x, y] = interpolatePolygon([square, hole])(0)[0]![0]!;
       expect(x).toBeCloseTo((100 * 5 - 12 * 7) / 88, 10);
       expect(y).toBeCloseTo(5, 10);
     });
@@ -73,29 +73,29 @@ describe('interpolatePolygon', () => {
           [8, 0],
         ],
       ]);
-      expect(j(0)[0][0]).toEqual([4, 0]);
+      expect(j(0)[0]![0]!).toEqual([4, 0]);
     });
   });
 
   describe('origin', () => {
     it('キーワードは外接矩形から求め、top は y の小さい側とする', () => {
       expect(
-        interpolatePolygon([square], { origin: 'top left' })(0)[0][0],
+        interpolatePolygon([square], { origin: 'top left' })(0)[0]![0]!,
       ).toEqual([0, 0]);
       expect(
-        interpolatePolygon([square], { origin: 'right bottom' })(0)[0][0],
+        interpolatePolygon([square], { origin: 'right bottom' })(0)[0]![0]!,
       ).toEqual([10, 10]);
-      expect(interpolatePolygon([square], { origin: 'top' })(0)[0][0]).toEqual([
-        5, 0,
-      ]);
       expect(
-        interpolatePolygon([square], { origin: 'center' })(0)[0][0],
+        interpolatePolygon([square], { origin: 'top' })(0)[0]![0]!,
+      ).toEqual([5, 0]);
+      expect(
+        interpolatePolygon([square], { origin: 'center' })(0)[0]![0]!,
       ).toEqual([5, 5]);
     });
 
     it('点を指定できる', () => {
       const i = interpolatePolygon([square], { origin: [20, 0] });
-      expect(i(0.5)[0][0]).toEqual([10, 0]);
+      expect(i(0.5)[0]![0]!).toEqual([10, 0]);
     });
   });
 
@@ -114,7 +114,7 @@ describe('interpolatePolygon', () => {
 
     it('x のとき x 方向だけ拡大する', () => {
       const i = interpolatePolygon([square], { axis: 'x', origin: 'left' });
-      expect(i(0.5)[0][1]).toEqual([5, 0]);
+      expect(i(0.5)[0]![1]!).toEqual([5, 0]);
     });
   });
 
@@ -127,12 +127,12 @@ describe('interpolatePolygon', () => {
 
     it('extrapolateEnd のとき 1 倍を超えて拡大する', () => {
       const i = interpolatePolygon([square], { extrapolateEnd: true });
-      expect(i(2)[0][0]).toEqual([-5, -5]);
+      expect(i(2)[0]![0]!).toEqual([-5, -5]);
     });
 
     it('extrapolateStart のとき基準点を挟んで裏返る', () => {
       const i = interpolatePolygon([square], { extrapolateStart: true });
-      expect(i(-1)[0][0]).toEqual([10, 10]);
+      expect(i(-1)[0]![0]!).toEqual([10, 10]);
     });
   });
 
@@ -141,7 +141,7 @@ describe('interpolatePolygon', () => {
       const i = interpolatePolygon([
         square.map(([x, y], index) => ({ x, y, index })),
       ]);
-      expect(i(0.5)[0][1]).toEqual({ x: 7.5, y: 2.5, index: 1 });
+      expect(i(0.5)[0]![1]!).toEqual({ x: 7.5, y: 2.5, index: 1 });
     });
 
     it('getCoordinates / createPoint で任意の形式を扱える', () => {
@@ -153,9 +153,9 @@ describe('interpolatePolygon', () => {
           createPoint: (position, { source }) => ({ position, source }) as P,
         },
       );
-      const point = i(0.5)[0][0] as P & { source: P };
+      const point = i(0.5)[0]![0]! as P & { source: P };
       expect(point.position).toEqual([2.5, 2.5]);
-      expect(point.source.position).toBe(square[0]);
+      expect(point.source.position).toBe(square[0]!);
     });
   });
 });

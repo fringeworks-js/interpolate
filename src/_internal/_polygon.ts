@@ -65,7 +65,7 @@ export const mercatorSpace = (coordinates: CoordinatesTree): PolygonSpace => {
     rings.map((ring) => {
       const result: number[] = [];
       ring.forEach(([lng], i) => {
-        result.push(unwrap(lng, i === 0 ? reference : result[i - 1]));
+        result.push(unwrap(lng, i === 0 ? reference : result[i - 1]!));
       });
       return result;
     }),
@@ -74,7 +74,7 @@ export const mercatorSpace = (coordinates: CoordinatesTree): PolygonSpace => {
     coordinates: coordinates.map((rings, k) =>
       rings.map((ring, r) =>
         ring.map(([, lat], i): Coordinates => [
-          toRadians(unwrapped[k][r][i]),
+          toRadians(unwrapped[k]![r]![i]!),
           projectLatitude(lat),
         ]),
       ),
@@ -85,7 +85,7 @@ export const mercatorSpace = (coordinates: CoordinatesTree): PolygonSpace => {
       projectLatitude(lat),
     ],
     unproject: ([x, y], k, r, i) => [
-      coordinates[k][r][i][0] + toDegrees(x) - unwrapped[k][r][i],
+      coordinates[k]![r]![i]![0] + toDegrees(x) - unwrapped[k]![r]![i]!,
       unprojectLatitude(y),
     ],
   };
@@ -113,7 +113,7 @@ const getCentroid = (polygons: CoordinatesTree): Coordinates => {
         ringX = 0,
         ringY = 0;
       ring.forEach(([x, y], i) => {
-        const [nextX, nextY] = ring[(i + 1) % ring.length];
+        const [nextX, nextY] = ring[(i + 1) % ring.length]!;
         const x0 = x - refX,
           y0 = y - refY,
           x1 = nextX - refX,
@@ -234,10 +234,10 @@ export default function _createPolygonInterpolator<P>(
     }
 
     return source.map((rings, k) => {
-      const [originX, originY] = origins[k];
+      const [originX, originY] = origins[k]!;
       return rings.map((ring, r) =>
         ring.map((point, i) => {
-          const [x, y] = space.coordinates[k][r][i];
+          const [x, y] = space.coordinates[k]![r]![i]!;
           const scaled: Coordinates = [
             axis === 'y' ? x : originX + (x - originX) * scale,
             axis === 'x' ? y : originY + (y - originY) * scale,
