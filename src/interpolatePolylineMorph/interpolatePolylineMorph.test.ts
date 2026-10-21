@@ -125,12 +125,12 @@ describe('interpolatePolylineMorph', () => {
     expect(createPoint).toHaveBeenCalledWith([0, 3], {
       from: a[0],
       to: b[0],
-      ratio: 0.3,
+      t: 0.3,
     });
     expect(createPoint).toHaveBeenCalledWith([10, 3], {
       from: a[1],
       to: b[1],
-      ratio: 0.3,
+      t: 0.3,
     });
   });
 
@@ -172,9 +172,9 @@ describe('interpolatePolylineMorph', () => {
       ]);
     });
 
-    it("origin: 'center' は全体の長さの半分の位置を基準にする", () => {
+    it("origin: 'middle' は全体の長さの半分の位置を基準にする", () => {
       const i = interpolatePolylineMorph<Point>([], route, {
-        origin: 'center',
+        origin: 'middle',
       });
       expect(i(0.5)).toEqual([
         [5, 0],
@@ -210,7 +210,7 @@ describe('interpolatePolylineMorph', () => {
       expect(createPoint).toHaveBeenCalledWith([5, 0], {
         from: route[1],
         to: route[1],
-        ratio: 0.5,
+        t: 0.5,
       });
     });
   });

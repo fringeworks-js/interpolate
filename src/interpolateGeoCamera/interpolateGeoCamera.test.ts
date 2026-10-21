@@ -1,4 +1,5 @@
 import interpolateGeoCamera from './interpolateGeoCamera';
+import type { GeoCamera } from './types';
 
 const tokyo = { lat: 35.68, lng: 139.77 },
   newYork = { lat: 40.71, lng: -74.0 };
@@ -129,14 +130,44 @@ describe('interpolateGeoCamera', () => {
       expect(tilt).toBeCloseTo(22.5, 10);
     });
 
-    it('片方にしかない場合は補間しない', () => {
+    it('端では元の値にする', () => {
+      const i = interpolateGeoCamera(
+        { center: tokyo, zoom: 10, heading: 350, tilt: 0 },
+        { center: tokyo, zoom: 10, heading: 10, tilt: 45 },
+      );
+      expect(i(0)).toMatchObject({ heading: 350, tilt: 0 });
+      expect(i(1)).toMatchObject({ heading: 10, tilt: 45 });
+    });
+
+    it('片方にしかない場合は、t によらずその値にする', () => {
       const i = interpolateGeoCamera(
         { center: tokyo, zoom: 10, heading: 90 },
+        { center: tokyo, zoom: 12, tilt: 30 },
+      );
+      for (const t of [-1, 0, 0.5, 1, 2]) {
+        expect(i(t)).toMatchObject({ heading: 90, tilt: 30 });
+      }
+    });
+
+    it('両方にない場合は含めない', () => {
+      const i = interpolateGeoCamera(
+        { center: tokyo, zoom: 10 },
         { center: tokyo, zoom: 12 },
       );
-      expect(i(0.5)).not.toHaveProperty('heading');
-      expect(i(0.5)).not.toHaveProperty('tilt');
+      for (const t of [0, 0.5, 1]) {
+        expect(i(t)).not.toHaveProperty('heading');
+        expect(i(t)).not.toHaveProperty('tilt');
+      }
     });
+  });
+
+  it('その他のプロパティは端でも含めない', () => {
+    const i = interpolateGeoCamera(
+      { center: tokyo, zoom: 10, extra: 1 } as GeoCamera<typeof tokyo>,
+      { center: newYork, zoom: 12, extra: 2 } as GeoCamera<typeof tokyo>,
+    );
+    expect(i(0)).toEqual({ center: tokyo, zoom: 10 });
+    expect(i(1)).toEqual({ center: newYork, zoom: 12 });
   });
 
   it('中心の点は補間前の点のプロパティを引き継ぐ', () => {

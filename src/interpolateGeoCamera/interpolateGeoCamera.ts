@@ -22,12 +22,33 @@ const WORLD_SIZE = 256;
 const EPSILON2 = 1e-12;
 
 /**
+ * 省略できる値（`heading` / `tilt`）を求める
+ *
+ * 両方にある場合は、端では元の値、途中では interpolate で補間した値にする。
+ * 片方にしかない場合は、t によらずその値にする
+ */
+const resolveOptional = (
+  from: number | undefined,
+  to: number | undefined,
+  t: number,
+  interpolate: (from: number, to: number) => number,
+): number | undefined => {
+  if (typeof from !== 'number') {
+    return typeof to === 'number' ? to : undefined;
+  } else if (typeof to !== 'number') {
+    return from;
+  }
+  return t <= 0 ? from : t >= 1 ? to : interpolate(from, to);
+};
+
+/**
  * 地図のカメラを、遠い場所へは一度ズームアウトしてから移動し、ズームインするように補間する関数を返す
  *
  * d3 の `interpolateZoom` と同じ van Wijk と Nuij の方法を、Web メルカトルの座標とズームレベルに当てはめる。
  * 中心の点は `[lng, lat]`（GeoJSON の順）と `{ lat, lng }` を自動で判別する。
  * 経度は近い方向に移動し、返す経度は補間前の経度から連続した値にする。
- * `heading` は近い方向に回り、`tilt` は線形に補間する（どちらも補間前と補間後の両方にある場合だけ）
+ * `heading` は近い方向に回り、`tilt` は線形に補間する。どちらも片方にしかない場合は、t によらずその値にする。
+ * 返す値は `center`・`zoom`・`heading`・`tilt` だけを持ち、`a` / `b` のその他のプロパティは含めない
  * @param a 補間前のカメラ（t = 0 のときの値）
  * @param b 補間後のカメラ（t = 1 のときの値）
  * @param options オプション
@@ -93,36 +114,44 @@ export default function interpolateGeoCamera<P>(
     };
   }
 
-  const hasHeading =
-      typeof a.heading === 'number' && typeof b.heading === 'number',
-    hasTilt = typeof a.tilt === 'number' && typeof b.tilt === 'number';
-
   const interpolate = ((t: number): GeoCamera<P> => {
+    let camera: GeoCamera<P>;
     if (t <= 0) {
-      return { ...a };
+      camera = { center: a.center, zoom: a.zoom };
     } else if (t >= 1) {
-      return { ...b };
+      camera = { center: b.center, zoom: b.zoom };
+    } else {
+      const [ratio, width] = at(t);
+      const x = ux0 + ratio * dx,
+        y = uy0 + ratio * dy;
+      camera = {
+        center: createPoint(
+          [
+            toDegrees((x / WORLD_SIZE) * 2 * Math.PI),
+            unprojectLatitude((y / WORLD_SIZE) * 2 * Math.PI),
+          ],
+          { source: a.center },
+        ),
+        zoom: Math.log2(viewportWidth / width),
+      };
     }
-    const [ratio, width] = at(t);
-    const x = ux0 + ratio * dx,
-      y = uy0 + ratio * dy;
-    const camera: GeoCamera<P> = {
-      center: createPoint(
-        [
-          toDegrees((x / WORLD_SIZE) * 2 * Math.PI),
-          unprojectLatitude((y / WORLD_SIZE) * 2 * Math.PI),
-        ],
-        { source: a.center },
-      ),
-      zoom: Math.log2(viewportWidth / width),
-    };
-    if (hasHeading) {
-      // hasHeading で両方とも数値であることを確認している
-      camera.heading = a.heading! + wrapLongitude(b.heading! - a.heading!) * t;
+    const heading = resolveOptional(
+      a.heading,
+      b.heading,
+      t,
+      (from, to) => from + wrapLongitude(to - from) * t,
+    );
+    if (heading !== undefined) {
+      camera.heading = heading;
     }
-    if (hasTilt) {
-      // hasTilt で両方とも数値であることを確認している
-      camera.tilt = a.tilt! + (b.tilt! - a.tilt!) * t;
+    const tilt = resolveOptional(
+      a.tilt,
+      b.tilt,
+      t,
+      (from, to) => from + (to - from) * t,
+    );
+    if (tilt !== undefined) {
+      camera.tilt = tilt;
     }
     return camera;
   }) as GeoCameraInterpolator<P>;

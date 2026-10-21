@@ -154,7 +154,7 @@ export type PolylineMorphPointContext<P> = {
   /**
    * t の値
    */
-  ratio: number;
+  t: number;
 };
 
 /**
@@ -163,9 +163,9 @@ export type PolylineMorphPointContext<P> = {
 export type PolylineMorphOptions<P> = ExtrapolateOptions & {
   /**
    * どちらかの折れ線に点がない場合に、広がる・縮む基準点。
-   * `'start'`（始点）/ `'end'`（終点）/ `'center'`（全体の長さの半分の位置）/ 点。デフォルトは `'start'`
+   * `'start'`（始点）/ `'end'`（終点）/ `'middle'`（全体の長さの半分の位置）/ 点。デフォルトは `'start'`
    */
-  origin?: 'start' | 'end' | 'center' | P;
+  origin?: 'start' | 'end' | 'middle' | P;
   /**
    * 点から座標を取り出す関数
    */

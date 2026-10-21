@@ -94,7 +94,7 @@ export const mercatorSpace = (coordinates: CoordinatesTree): PolygonSpace => {
 /**
  * 面積の重心を求める
  *
- * 各ポリゴンは外周の回り方を正として扱い、逆回りのリング（穴）の面積を差し引く。
+ * 各ポリゴンの1つ目のリングを外周、2つ目以降を穴として、回り方によらず穴の面積を差し引く。
  * 面積がない場合は頂点の平均を返す
  */
 const getCentroid = (polygons: CoordinatesTree): Coordinates => {
@@ -107,7 +107,6 @@ const getCentroid = (polygons: CoordinatesTree): Coordinates => {
     meanY = 0,
     count = 0;
   for (const rings of polygons) {
-    let sign = 1;
     rings.forEach((ring, r) => {
       let ringArea = 0,
         ringX = 0,
@@ -127,9 +126,8 @@ const getCentroid = (polygons: CoordinatesTree): Coordinates => {
         meanY += y0;
         count++;
       });
-      if (r === 0) {
-        sign = Math.sign(ringArea) || 1;
-      }
+      // 外周は正、穴は負の面積にそろえる
+      const sign = (r === 0 ? 1 : -1) * (Math.sign(ringArea) || 1);
       area += ringArea * sign;
       sumX += ringX * sign;
       sumY += ringY * sign;

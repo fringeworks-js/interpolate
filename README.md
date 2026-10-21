@@ -298,11 +298,11 @@ i(0.5); // [[0, 5], [5, 7.5], [10, 10]]
 
 | Option              | Type                                                                     | Description                                                                                                                                                                               |
 | ------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `origin?`           | `'start' \| 'end' \| 'center' \| P`                                      | When either polyline has no points, the point it grows from or shrinks to: the start, the end, or the halfway point along the polyline that has points, or a point. Defaults to `'start'` |
+| `origin?`           | `'start' \| 'end' \| 'middle' \| P`                                      | When either polyline has no points, the point it grows from or shrinks to: the start, the end, or the halfway point along the polyline that has points, or a point. Defaults to `'start'` |
 | `extrapolateStart?` | `boolean`                                                                | Keeps calculating for t < 0                                                                                                                                                               |
 | `extrapolateEnd?`   | `boolean`                                                                | Keeps calculating for t > 1                                                                                                                                                               |
 | `getCoordinates?`   | `(point: P) => Coordinates`                                              | A function that gets coordinates from a point                                                                                                                                             |
-| `createPoint?`      | `(coordinates: Coordinates, context: PolylineMorphPointContext<P>) => P` | A function that creates a point from coordinates. `context` has the preceding vertex on the `a` side `from`, on the `b` side `to`, and the value of `t` as `ratio`                        |
+| `createPoint?`      | `(coordinates: Coordinates, context: PolylineMorphPointContext<P>) => P` | A function that creates a point from coordinates. `context` has the preceding vertex on the `a` side `from`, on the `b` side `to`, and the value of `t` as `t`                            |
 
 ### `interpolateGeoPolylineMorph`
 
@@ -422,14 +422,14 @@ interpolatePolygon(square)(0.5); // [[[2.5, 2.5], [7.5, 2.5], [7.5, 7.5], [2.5, 
 interpolatePolygon(square, { origin: 'bottom', axis: 'y' })(0.5); // [[[0, 5], [10, 5], [10, 10], [0, 10]]]
 ```
 
-| Option              | Type                                                               | Description                                                                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `origin?`           | `'centroid' \| OriginKeyword \| P`                                 | The origin of scaling. `'centroid'` is the area centroid (rings wound opposite to the exterior are subtracted as holes). Keywords use the bounding box. Defaults to `'centroid'` |
-| `axis?`             | `ScaleAxis`                                                        | The axis to scale. With `'x'` / `'y'`, the shape grows from an edge. Defaults to `'both'`                                                                                        |
-| `extrapolateStart?` | `boolean`                                                          | Keeps calculating for t < 0, flipping the shape across the origin                                                                                                                |
-| `extrapolateEnd?`   | `boolean`                                                          | Keeps calculating for t > 1, scaling beyond the original size                                                                                                                    |
-| `getCoordinates?`   | `(point: P) => Coordinates`                                        | A function that gets coordinates from a point                                                                                                                                    |
-| `createPoint?`      | `(coordinates: Coordinates, context: PolygonPointContext<P>) => P` | A function that creates a point from coordinates. `context` has the original point `source`                                                                                      |
+| Option              | Type                                                               | Description                                                                                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `origin?`           | `'centroid' \| OriginKeyword \| P`                                 | The origin of scaling. `'centroid'` is the area centroid (the second and later rings are subtracted as holes regardless of winding order). Keywords use the bounding box. Defaults to `'centroid'` |
+| `axis?`             | `ScaleAxis`                                                        | The axis to scale. With `'x'` / `'y'`, the shape grows from an edge. Defaults to `'both'`                                                                                                          |
+| `extrapolateStart?` | `boolean`                                                          | Keeps calculating for t < 0, flipping the shape across the origin                                                                                                                                  |
+| `extrapolateEnd?`   | `boolean`                                                          | Keeps calculating for t > 1, scaling beyond the original size                                                                                                                                      |
+| `getCoordinates?`   | `(point: P) => Coordinates`                                        | A function that gets coordinates from a point                                                                                                                                                      |
+| `createPoint?`      | `(coordinates: Coordinates, context: PolygonPointContext<P>) => P` | A function that creates a point from coordinates. `context` has the original point `source`                                                                                                        |
 
 ### `interpolateGeoPolygon`
 
@@ -470,9 +470,10 @@ interpolateGeoCamera<P>(a: GeoCamera<P>, b: GeoCamera<P>, options?: InterpolateG
 Returns an interpolator that moves a map camera (`{ center, zoom }`): for distant places, it zooms out first, moves, and zooms back in. It applies the van Wijk and Nuij method used by d3's `interpolateZoom` to Web Mercator coordinates and zoom levels.
 
 - Longitude moves in the shorter direction, and the returned longitude stays continuous with that of `a`
-- `heading` turns in the shorter direction and `tilt` is interpolated linearly (only when both `a` and `b` have them)
+- `heading` turns in the shorter direction and `tilt` is interpolated linearly. When only one of `a` and `b` has one of them, that value is used throughout
+- The returned value has only `center`, `zoom`, `heading`, and `tilt`; other properties of `a` / `b` are not included
 - The returned function has `duration`, a time in milliseconds that suits the amount of movement: short for near moves, longer for far ones
-- If `t` is 0 or less, it returns the same values as `a`; if `t` is 1 or more, as `b`, in a new object
+- If `t` is 0 or less, it returns the values of `a`; if `t` is 1 or more, those of `b` (the center point is the same reference), in a new object
 
 ```ts
 const i = interpolateGeoCamera(

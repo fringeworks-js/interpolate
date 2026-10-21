@@ -65,6 +65,19 @@ describe('interpolatePolygon', () => {
       expect(y).toBeCloseTo(5, 10);
     });
 
+    it('外周と同じ回り方の穴も差し引く', () => {
+      // 外周（面積 100、重心 (5, 5)）と同じ回り方の穴（面積 12、重心 (7, 5)）
+      const hole: Point[] = [
+        [8, 2],
+        [8, 8],
+        [6, 8],
+        [6, 2],
+      ];
+      const [x, y] = interpolatePolygon([square, hole])(0)[0]![0]!;
+      expect(x).toBeCloseTo((100 * 5 - 12 * 7) / 88, 10);
+      expect(y).toBeCloseTo(5, 10);
+    });
+
     it('面積がない場合は頂点の平均を基準にする', () => {
       const j = interpolatePolygon([
         [

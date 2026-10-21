@@ -79,8 +79,8 @@ export default function _createPolylineMorphInterpolator<P>(
     extrapolateStart = false,
     extrapolateEnd = false,
     getCoordinates = format.get as (point: P) => Coordinates,
-    createPoint = (coordinates, { from, to, ratio }) =>
-      format.create(coordinates, ratio < 0.5 ? from : to) as P,
+    createPoint = (coordinates, { from, to, t }) =>
+      format.create(coordinates, t < 0.5 ? from : to) as P,
   } = options;
 
   const sourceA = a.slice(),
@@ -103,7 +103,7 @@ export default function _createPolylineMorphInterpolator<P>(
         ? existing[0]!
         : origin === 'end'
           ? existing[existing.length - 1]!
-          : origin === 'center'
+          : origin === 'middle'
             ? sample(existing, getFractions(existing), 0.5).coordinates
             : space.project(getCoordinates(origin as P));
     if (emptyA) {
@@ -147,7 +147,7 @@ export default function _createPolylineMorphInterpolator<P>(
       return createPoint(coordinates, {
         from: (emptyA ? to : from)!,
         to: (emptyB ? from : to)!,
-        ratio: t,
+        t,
       });
     });
   };

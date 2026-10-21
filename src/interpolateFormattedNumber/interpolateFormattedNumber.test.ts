@@ -16,6 +16,31 @@ describe('interpolateFormattedNumber', () => {
     );
   });
 
+  describe('既定の formatter の小数の桁', () => {
+    const format = (value: number, digits: number) =>
+      new Intl.NumberFormat(undefined, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      }).format(value);
+
+    it('3 桁を超える小数も丸め直さない', () => {
+      const i = interpolateFormattedNumber(0, 1.2345);
+      expect(i(1)).toBe(format(1.2345, 4));
+      expect(i(0.5)).toBe(format(0.6173, 4));
+    });
+
+    it('末尾の 0 を省かず、桁数を固定する', () => {
+      const i = interpolateFormattedNumber(0, 10, { fractionDigits: 2 });
+      expect(i(0.1)).toBe(format(1, 2));
+      expect(i(0.12)).toBe(format(1.2, 2));
+    });
+
+    it('20 桁を超える場合は 20 桁で表示する', () => {
+      const i = interpolateFormattedNumber(0, 1, { fractionDigits: 30 });
+      expect(i(0.5)).toBe(format(0.5, 20));
+    });
+  });
+
   it('Intl.NumberFormat の書式（通貨など）を使える', () => {
     const formatter = new Intl.NumberFormat('ja-JP', {
       style: 'currency',

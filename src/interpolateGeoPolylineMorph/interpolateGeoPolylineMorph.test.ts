@@ -68,8 +68,8 @@ describe('interpolateGeoPolylineMorph', () => {
       { lat: 0, lng: -179 },
     ];
 
-    it("origin: 'center' は経度 ±180° をまたいでも線の上の中央を基準にする", () => {
-      const i = interpolateGeoPolylineMorph([], route, { origin: 'center' });
+    it("origin: 'middle' は経度 ±180° をまたいでも線の上の中央を基準にする", () => {
+      const i = interpolateGeoPolylineMorph([], route, { origin: 'middle' });
       const [p0, p1] = i(0.5);
       expect(p0!.lng).toBeCloseTo(179.5, 10);
       expect(p1!.lng).toBeCloseTo(-179.5, 10);

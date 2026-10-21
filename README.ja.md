@@ -298,11 +298,11 @@ i(0.5); // [[0, 5], [5, 7.5], [10, 10]]
 
 | オプション          | 型                                                                       | 説明                                                                                                                                             |
 | ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `origin?`           | `'start' \| 'end' \| 'center' \| P`                                      | どちらかの折れ線に点がない場合に、広がる・縮む基準点。点のある側の始点・終点・全体の長さの半分の位置、または点を指定する。デフォルトは `'start'` |
+| `origin?`           | `'start' \| 'end' \| 'middle' \| P`                                      | どちらかの折れ線に点がない場合に、広がる・縮む基準点。点のある側の始点・終点・全体の長さの半分の位置、または点を指定する。デフォルトは `'start'` |
 | `extrapolateStart?` | `boolean`                                                                | t < 0 でも計算する                                                                                                                               |
 | `extrapolateEnd?`   | `boolean`                                                                | t > 1 でも計算する                                                                                                                               |
 | `getCoordinates?`   | `(point: P) => Coordinates`                                              | 点から座標を取り出す関数                                                                                                                         |
-| `createPoint?`      | `(coordinates: Coordinates, context: PolylineMorphPointContext<P>) => P` | 座標から点を作る関数。`context` には `a` 側の直前の頂点 `from`・`b` 側の直前の頂点 `to`・`t` の値 `ratio` が入る                                 |
+| `createPoint?`      | `(coordinates: Coordinates, context: PolylineMorphPointContext<P>) => P` | 座標から点を作る関数。`context` には `a` 側の直前の頂点 `from`・`b` 側の直前の頂点 `to`・`t` の値 `t` が入る                                     |
 
 ### `interpolateGeoPolylineMorph`
 
@@ -422,14 +422,14 @@ interpolatePolygon(square)(0.5); // [[[2.5, 2.5], [7.5, 2.5], [7.5, 7.5], [2.5, 
 interpolatePolygon(square, { origin: 'bottom', axis: 'y' })(0.5); // [[[0, 5], [10, 5], [10, 10], [0, 10]]]
 ```
 
-| オプション          | 型                                                                 | 説明                                                                                                                                               |
-| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `origin?`           | `'centroid' \| OriginKeyword \| P`                                 | 拡大・縮小の基準点。`'centroid'` は面積の重心（外周と逆回りのリングは穴として差し引く）。キーワードは外接矩形から求める。デフォルトは `'centroid'` |
-| `axis?`             | `ScaleAxis`                                                        | 拡大・縮小する軸。`'x'` / `'y'` の場合は、辺から伸ばすように変化する。デフォルトは `'both'`                                                        |
-| `extrapolateStart?` | `boolean`                                                          | t < 0 でも計算し、基準点を挟んで裏返す                                                                                                             |
-| `extrapolateEnd?`   | `boolean`                                                          | t > 1 でも計算し、1 倍を超えて拡大する                                                                                                             |
-| `getCoordinates?`   | `(point: P) => Coordinates`                                        | 点から座標を取り出す関数                                                                                                                           |
-| `createPoint?`      | `(coordinates: Coordinates, context: PolygonPointContext<P>) => P` | 座標から点を作る関数。`context` には元の点 `source` が入る                                                                                         |
+| オプション          | 型                                                                 | 説明                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `origin?`           | `'centroid' \| OriginKeyword \| P`                                 | 拡大・縮小の基準点。`'centroid'` は面積の重心（2つ目以降のリングは回り方によらず穴として差し引く）。キーワードは外接矩形から求める。デフォルトは `'centroid'` |
+| `axis?`             | `ScaleAxis`                                                        | 拡大・縮小する軸。`'x'` / `'y'` の場合は、辺から伸ばすように変化する。デフォルトは `'both'`                                                                   |
+| `extrapolateStart?` | `boolean`                                                          | t < 0 でも計算し、基準点を挟んで裏返す                                                                                                                        |
+| `extrapolateEnd?`   | `boolean`                                                          | t > 1 でも計算し、1 倍を超えて拡大する                                                                                                                        |
+| `getCoordinates?`   | `(point: P) => Coordinates`                                        | 点から座標を取り出す関数                                                                                                                                      |
+| `createPoint?`      | `(coordinates: Coordinates, context: PolygonPointContext<P>) => P` | 座標から点を作る関数。`context` には元の点 `source` が入る                                                                                                    |
 
 ### `interpolateGeoPolygon`
 
@@ -470,9 +470,10 @@ interpolateGeoCamera<P>(a: GeoCamera<P>, b: GeoCamera<P>, options?: InterpolateG
 地図のカメラ（`{ center, zoom }`）を、遠い場所へは一度ズームアウトしてから移動し、ズームインするように補間する関数を返します。d3 の `interpolateZoom` と同じ van Wijk と Nuij の方法を、Web メルカトルの座標とズームレベルに当てはめています。
 
 - 経度は近い方向に移動し、返す経度は `a` の経度から連続した値にします
-- `heading` は近い方向に回り、`tilt` は線形に補間します（どちらも `a` と `b` の両方にある場合だけ）
+- `heading` は近い方向に回り、`tilt` は線形に補間します。どちらも `a` と `b` の片方にしかない場合は、途中もその値にします
+- 返す値は `center`・`zoom`・`heading`・`tilt` だけを持ち、`a` / `b` のその他のプロパティは含めません
 - 返す関数の `duration` に、移動量に見合った時間（ミリ秒）が入ります。近い移動は短く、遠い移動は長くなります
-- `t` が 0 以下の場合は `a`、1 以上の場合は `b` と同じ値を、新しいオブジェクトで返します
+- `t` が 0 以下の場合は `a`、1 以上の場合は `b` の値（中心の点は同じ参照）を、新しいオブジェクトで返します
 
 ```ts
 const i = interpolateGeoCamera(

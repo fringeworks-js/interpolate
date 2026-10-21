@@ -41,6 +41,11 @@ export default function interpolateScramble(
     to = _splitGraphemes(b);
   const count = Math.max(from.length, to.length);
   const ranges = _createStaggerRanges(count, options.stagger, 0.2);
+  // 区間の中で表示する文字が空白なら、ランダムな文字にせずその文字を使う
+  const blanks = Array.from({ length: count }, (_, i) => {
+    const target = to[i] ?? from[i] ?? '';
+    return /^\s+$/.test(target) ? target : undefined;
+  });
 
   return (t) => {
     if (t <= 0) {
@@ -57,10 +62,7 @@ export default function interpolateScramble(
       } else if (local >= 1) {
         result += to[i] ?? '';
       } else {
-        const target = to[i] ?? from[i] ?? '';
-        result += /^\s+$/.test(target)
-          ? target
-          : pool[hash(seed, i, step) % pool.length];
+        result += blanks[i] ?? pool[hash(seed, i, step) % pool.length];
       }
     }
     return result;

@@ -11,7 +11,7 @@ export type NumberFormatter = Intl.NumberFormat | ((value: number) => string);
  */
 export type InterpolateFormattedNumberOptions = {
   /**
-   * 数値を文字列にする関数、または `Intl.NumberFormat`。デフォルトは `new Intl.NumberFormat()`
+   * 数値を文字列にする関数、または `Intl.NumberFormat`。デフォルトは実行環境のロケールの `Intl.NumberFormat` で、小数を `fractionDigits` 桁（20 桁まで）に固定して表示する
    */
   formatter?: NumberFormatter;
   /**
